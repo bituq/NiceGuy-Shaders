@@ -60,8 +60,6 @@
 uniform float Timer < source = "timer"; >;
 uniform float Frame < source = "framecount"; >;
 
-static const float2 pix = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
-
 #define LDepth ReShade::GetLinearizedDepth
 
 #define FAR_PLANE RESHADE_DEPTH_LINEARIZATION_FAR_PLANE 
@@ -315,7 +313,7 @@ float2 PostoUV(float3 position)
 	
 float3 Normal(float2 texcoord)
 {
-	float2 p = pix;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float3 u,d,l,r,u2,d2,l2,r2;
 	
 	u = UVtoPos( texcoord + float2( 0, p.y));
@@ -360,7 +358,7 @@ float3 ClampLuma(float3 color, float luma)
 
 float3 GetRoughTex(float2 texcoord, float4 normal)
 {
-	float2 p = pix;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	
 	if(!GI)
 	{
@@ -407,7 +405,7 @@ float3 GetRoughTex(float2 texcoord, float4 normal)
 #define BT 1000
 float3 Bump(float2 texcoord, float height)
 {
-	float2 p = pix;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	
 	float3 s[3];
 	s[0] = tex2D(sTexColor, texcoord + float2(p.x, 0)).rgb;
@@ -561,7 +559,7 @@ float4 SNH(float4 vpos : SV_Position, float2 texcoord : TexCoord) : SV_Target
 	float4 color = tex2D(sSSSR_NormTex, texcoord);
 	float4 s, s1; float sc;
 	
-	float2 p = pix; p*=SNWidth;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT); p*=SNWidth;
 	
 		float T = SNThreshold * saturate(2*(1-color.a));
 	T = rcp(max(T, 0.0001));
@@ -584,7 +582,7 @@ float4 SNV(float4 vpos : SV_Position, float2 texcoord : TexCoord) : SV_Target
 	float4 color = tex2Dlod(sSSSR_NormTex1, float4(texcoord, 0, 0));
 	float4 s, s1; float sc;
 
-	float2 p = pix; p*=SNWidth;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT); p*=SNWidth;
 	float T = SNThreshold * saturate(2*(1-color.a)); T = rcp(max(T, 0.0001));
 	for (int i = -SNSamples; i <= SNSamples; i++)
 	{
@@ -709,7 +707,7 @@ void RayMarch(float4 vpos : SV_Position, float2 texcoord : TexCoord, out float4 
 
 float2 GetMotionVectorsDeflickered(float2 texcoord)
 {
-	float2 p = pix;// p /= 1;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);// p /= 1;
 	float2 MV = 0;
 	if(MVErrorTolerance<1)
 	{
@@ -811,7 +809,7 @@ float GetSpecularSpatialDenoiserRadius(float2 texcoord)
 //mode 0 is specular. mode 1 is diffuse
 float4 AdaptiveBox(in int size, in sampler Tex, in float2 texcoord, in float checkertex, in float HL)
 {
-	float2 p = pix;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float SpecRadius = 1;
 	if(!GI)SpecRadius = GetSpecularSpatialDenoiserRadius(texcoord);
 	p *= SpecRadius;
@@ -924,7 +922,7 @@ void SpatialFilter2(
 void TemporalStabilizer(float4 vpos : SV_Position, float2 texcoord : TexCoord, out float4 FinalColor : SV_Target0)
 {
 	float HL = tex2D(sSSSR_HLTex0, texcoord).r;
-	float2 p = pix;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	
 	float Roughness = tex2D(sSSSR_RoughTex, texcoord).x;
 	float2 MotionVectors = GetMotionVectorsDeflickered(texcoord);
@@ -1018,7 +1016,7 @@ float3 RTM(in float3 color){return color / (1 + color);}
 void Output(float4 vpos : SV_Position, float2 texcoord : TexCoord, out float3 FinalColor : SV_Target0)
 {
 	FinalColor = 0;
-	float2 p = pix;
+	float2 p = float2(BUFFER_RCP_WIDTH, BUFFER_RCP_HEIGHT);
 	float3 Background = tex2D(sTexColor, texcoord).rgb;
 	float  Depth      = LDepth(texcoord);
 	float  Roughness  = tex2D(sSSSR_RoughTex, texcoord).x;
